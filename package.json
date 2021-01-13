@@ -10,13 +10,16 @@
     "index": "./index.js"
   },
   "pkg": {
-    "assets": "node_modules/**/*"
+    "assets": [
+      "node_modules/**/*"
+    ]
   },
   "author": "Juzz",
   "license": "ISC",
   "dependencies": {
     "async": "^3.2.0",
     "express": "^4.17.1",
+    "prompt": "^1.1.0",
     "request": "^2.88.2",
     "selenium-webdriver": "^4.0.0-alpha.8"
   }

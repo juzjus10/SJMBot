@@ -11,6 +11,7 @@ options.addArguments("--disable-gpu");
 options.addArguments("--no-sandbox");
 options.addArguments("--disable-dev-shm-usage");
 
+//HEROKU VERSION
 let resend;
 let lastMessage;
 let errCtr;
@@ -32,8 +33,13 @@ let driver = new webdriver.Builder().forBrowser("chrome").setChromeOptions(optio
             await driver.get("https://www.messenger.com/t/106882174524725");
             await driver.sleep(3000)
 
-            startResendTimer();
-            checkNewMessage();
+            startResendTimer();   
+            await timeout(); 
+            while (true){
+                await checkNewMessage();   
+            }
+            
+            
         }
         catch (e) {
                 console.log("Main Process error" + e);  
@@ -44,19 +50,22 @@ let driver = new webdriver.Builder().forBrowser("chrome").setChromeOptions(optio
 
 async function checkNewMessage() { 
     try {
+        await driver.wait(until.elementLocated(By.xpath('//div[@data-testid="incoming_group"][last()]')), 30000)
         msg = await driver.findElement(By.xpath('//div[@data-testid="incoming_group"][last()]')).getText();
         if (msg != lastMessage){
             console.log(msg)
             check(msg);
             lastMessage = msg;
             errCtr = 0;
-        }   
+            
+        }
+         
     } catch (e) { 
         if (e instanceof webdriver.error.NoSuchElementError){
-            console.log("Error getting last message..."  )
+            console.log("Error getting last message..." + e )
             errCtr++;
-            if (errCtr == 50){
-                process.exit(); 
+            if (errCtr == 20){
+                timeout();
             }
         }
         else if (e instanceof webdriver.error.NoSuchSessionError) {
@@ -65,10 +74,11 @@ async function checkNewMessage() {
         }
         else {
             console.log(e)
-            process.exit();    
+            //process.exit();    
         }
     }
-    setImmediate(checkNewMessage);
+    
+    //process.nextTick(checkNewMessage);
         
 }     
 
@@ -77,11 +87,8 @@ async function timeout(){
     await driver.findElement(By.xpath('//div[@aria-label="Open persistent menu"]')).click();
     await driver.wait(until.elementLocated(By.xpath("//span[text()='🎖️ STARTER ACCOUNT']")), 30000)
     await driver.findElement(By.xpath("//span[text()='🎖️ STARTER ACCOUNT']")).click();
-    await driver.wait(until.elementLocated(By.xpath('(//div[@aria-label="CONTINUE"])[last() - 2]')), 30000)
-    await driver.findElement(By.xpath('(//div[@aria-label="CONTINUE"])[last() - 2]')).click();
-    await driver.get("https://www.messenger.com/t/106882174524725");
   } catch (e){
-      console.log("Error Clicking Dashboard");
+      console.log("Error Clicking Open persistent menu" + e);
   }   
 }
 
@@ -148,7 +155,53 @@ function check(message){
                 await driver.wait(until.elementLocated(By.xpath("//span[text()='Shipyard']")), 4000)
                 await (await driver.findElement(By.xpath("//span[text()='Shipyard']"))).click();
             }
-    
+            //BAR
+            else if (message.includes("When checking someones ID it is ok to ask them to remove it from there wallet")) {
+                await driver.wait(until.elementLocated(By.xpath("//span[text()='True']")), 4000)
+                await (await driver.findElement(By.xpath("//span[text()='True']"))).click();
+            }
+            else if (message.includes("When picking up glasses its ok to hold them at the rim.")) {
+                await driver.wait(until.elementLocated(By.xpath("//span[text()='False']")), 4000)
+                await (await driver.findElement(By.xpath("//span[text()='False']"))).click();
+            }
+            else if (message.includes("What is the legal drinking age in virginia?")) {
+                await driver.wait(until.elementLocated(By.xpath("//span[text()='21']")), 4000)
+                await (await driver.findElement(By.xpath("//span[text()='21']"))).click();
+            }
+            else if (message.includes("If a guest is not 21 but they are with a parent who gives them permission to drink alcohol it is ok to serve them.")) {
+                await driver.wait(until.elementLocated(By.xpath("//span[text()='False']")), 4000)
+                await (await driver.findElement(By.xpath("//span[text()='False']"))).click();
+            }
+            else if (message.includes("What is not considered a valid form of ID")) {
+                await driver.wait(until.elementLocated(By.xpath("//span[text()='College ID']")), 4000)
+                await (await driver.findElement(By.xpath("//span[text()='College ID']"))).click();
+            }
+            else if (message.includes("If a guest is intoxicated it is not your problem you dont have to worry about calling them a cab or notifying security")) {
+                await driver.wait(until.elementLocated(By.xpath("//span[text()='False']")), 4000)
+                await (await driver.findElement(By.xpath("//span[text()='False']"))).click();
+            }
+            else if (message.includes("When picking up drinks from the bar never remove a drink without its drink ticket. Always stab your drink tickets when you have recieved your drink.")) {
+                await driver.wait(until.elementLocated(By.xpath("//span[text()='True']")), 4000)
+                await (await driver.findElement(By.xpath("//span[text()='True']"))).click();
+            }
+            else if (message.includes("If you do come across a fake id you should always")) {
+                await driver.wait(until.elementLocated(By.xpath("//span[text()='Give ID to authority']")), 4000)
+                await (await driver.findElement(By.xpath("//span[text()='Give ID to authority']"))).click();
+            }
+            else if (message.includes("When taking drink orders and serving drinks you always serve women first.")) {
+                await driver.wait(until.elementLocated(By.xpath("//span[text()='True']")), 4000)
+                await (await driver.findElement(By.xpath("//span[text()='True']"))).click();
+            }
+            else if (message.includes("When cutting off alcohol service you should always tell a manager or supervisor")) {
+                await driver.wait(until.elementLocated(By.xpath("//span[text()='True']")), 4000)
+                await (await driver.findElement(By.xpath("//span[text()='True']"))).click();
+            }
+            //Dashboard
+            else if (message.includes("DASHBOARD")){
+                await driver.wait(until.elementLocated(By.xpath('(//div[@aria-label="CONTINUE"])[4]')), 30000)
+                await driver.findElement(By.xpath('(//div[@aria-label="CONTINUE"])[4]')).click();
+                await driver.get("https://www.messenger.com/t/106882174524725");
+            }
             clearResendTimer();
         } catch (e){
             console.log(e);
